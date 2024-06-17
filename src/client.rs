@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{self, Write};
 use std::net::{SocketAddr, TcpStream};
 
 use crate::communication;
@@ -12,4 +12,9 @@ pub fn ping_address(address: SocketAddr) {
 
 pub fn send_file(path: &std::path::PathBuf, stream: TcpStream) {
     communication::send_file(path, stream);
+}
+
+pub fn connect_to(address: SocketAddr) -> io::Result<()> {
+    let mut stream = TcpStream::connect(address).expect("could not establish connection!");
+    Ok(())
 }

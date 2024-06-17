@@ -19,17 +19,22 @@ fn main() -> io::Result<()> {
             let _ = server::start_server(address); // TODO: error handling
         }
 
+        cliargs::Command::Connect(connect_args) => {
+            let address = connect_args.address;
+            client::connect_to(address); // TODO: return connection handle
+        }
+
+        cliargs::Command::Ping(ping_args) => {
+            let address = ping_args.address;
+            client::ping_address(address);
+        }
+
         cliargs::Command::SendFile(send_file_args) => {
             let stream = TcpStream::connect(socket)?;
             let path = send_file_args.file_path;
             println!("sending over file {}", path.display());
             client::send_file(&path, stream);
             // TODO: some sort of generalized 'client::issue_command()' ?
-        }
-
-        cliargs::Command::Ping(ping_args) => {
-            let address = ping_args.address;
-            client::ping_address(address);
         }
     }
 

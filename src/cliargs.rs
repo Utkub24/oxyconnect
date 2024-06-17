@@ -14,6 +14,9 @@ pub enum Command {
     #[command(about = "Start listening on the specified address")]
     Listen(ListenArgs),
 
+    #[command(about = "Connect to the specified address")]
+    Connect(ConnectArgs),
+
     #[command(about = "Ping the specified address")]
     Ping(PingArgs),
 
@@ -35,6 +38,12 @@ pub struct ListenArgs {
 
 #[derive(Args, Debug)]
 pub struct PingArgs {
+    #[arg(short = 'a', long = "address", help = "Address of the server")]
+    pub address: SocketAddr
+}
+
+#[derive(Args, Debug)]
+pub struct ConnectArgs {
     #[arg(short = 'a', long = "address", help = "Address of the server")]
     pub address: SocketAddr
 }
