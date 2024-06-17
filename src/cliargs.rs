@@ -26,6 +26,9 @@ pub enum Command {
 
 #[derive(Args, Debug)]
 pub struct SendFileArgs {
+    #[arg(short = 'a', long = "address", help = "Address of the server")]
+    pub address: SocketAddr,
+
     #[arg(short = 'f', long = "file", help = "Path to the file to send")]
     pub file_path: PathBuf
 }

@@ -1,18 +1,18 @@
 mod cliargs;
-mod communication;
 mod client;
+mod communication;
 mod server;
 
-use std::{
-    io,
-    net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream},
-};
+use std::{fs::File, io};
 
 use clap::Parser;
+use client::Oxyclient;
+
+fn fetch_file(path: &std::path::PathBuf) -> File {
+    todo!()
+}
 
 fn main() -> io::Result<()> {
-    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
-
     match cliargs::Cli::parse().command {
         cliargs::Command::Listen(listen_args) => {
             let address = listen_args.address;
@@ -20,20 +20,25 @@ fn main() -> io::Result<()> {
         }
 
         cliargs::Command::Connect(connect_args) => {
-            let address = connect_args.address;
-            client::connect_to(address); // TODO: return connection handle
+            let mut client = Oxyclient::default();
+            let _ = client.connect_to(connect_args.address); // TODO: error handling
+                                                             // TODO: open interactive interface
         }
 
         cliargs::Command::Ping(ping_args) => {
-            let address = ping_args.address;
-            client::ping_address(address);
+            let client = Oxyclient::new(Some(ping_args.address));
+            match client.ping_active_connection() {
+                Ok(_) => println!("ping succeeded"),
+                Err(e) => eprintln!("ping failed\n{}", e),
+            }
         }
 
         cliargs::Command::SendFile(send_file_args) => {
-            let stream = TcpStream::connect(socket)?;
+            let client = Oxyclient::new(Some(send_file_args.address));
             let path = send_file_args.file_path;
+            let file = fetch_file(&path);
             println!("sending over file {}", path.display());
-            client::send_file(&path, stream);
+            client.send_file(file);
             // TODO: some sort of generalized 'client::issue_command()' ?
         }
     }
