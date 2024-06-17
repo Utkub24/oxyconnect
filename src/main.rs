@@ -7,6 +7,7 @@ use std::{fs::File, io};
 
 use clap::Parser;
 use client::Oxyclient;
+use server::Oxyserver;
 
 fn fetch_file(path: &std::path::PathBuf) -> File {
     todo!()
@@ -14,15 +15,16 @@ fn fetch_file(path: &std::path::PathBuf) -> File {
 
 fn main() -> io::Result<()> {
     match cliargs::Cli::parse().command {
-        cliargs::Command::Listen(listen_args) => {
-            let address = listen_args.address;
-            let _ = server::start_server(address); // TODO: error handling
-        }
+        cliargs::Command::Listen(listen_args) => match Oxyserver::create_at(listen_args.address) {
+            Ok(server) => server.start().expect(""),
+            Err(e) => eprintln!("failed to create server: {}", e),
+        },
 
         cliargs::Command::Connect(connect_args) => {
             let mut client = Oxyclient::default();
             let _ = client.connect_to(connect_args.address); // TODO: error handling
-                                                             // TODO: open interactive interface
+
+            // TODO: open interactive interface
         }
 
         cliargs::Command::Ping(ping_args) => {
