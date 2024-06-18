@@ -1,6 +1,8 @@
 use std::{
-    io::Read,
+    fs::File,
+    io::{Read, Write},
     net::{SocketAddr, TcpListener, TcpStream},
+    path::{Path, PathBuf}, str::FromStr,
 };
 
 pub struct Oxyserver {
@@ -26,7 +28,7 @@ impl Oxyserver {
         println!("started listening on {}", address);
         for connection in listener.incoming() {
             println!("establishing new connection: {:?}", connection); // TODO: remove debug printing
-            // NOTE: TcpListener::incoming() never returns none
+                                                                       // NOTE: TcpListener::incoming() never returns none
             match self.handle_connection(connection?) {
                 Ok(_) => println!("connection handled\n"),
                 Err(e) => eprintln!("error when handling connection:\n{}", e),
@@ -40,6 +42,17 @@ impl Oxyserver {
         let mut buf = String::new();
         stream.read_to_string(&mut buf)?;
         println!("received message: {}", buf);
+        let path = PathBuf::from_str("recieved_file").unwrap();
+        println!("writing to file: {}", path.display());
+        match File::create(&path) {
+            Ok(mut file) => {
+                match file.write_all(buf.as_bytes()) {
+                    Ok(_) => println!("wrote to file: {}", path.canonicalize().unwrap().display()),
+                    Err(e) => eprintln!("error writing to file: {}", e),
+                }
+            }
+            Err(e) => eprintln!("error creating/opening file: {}", e),
+        }
 
         // TODO: async pong client
 

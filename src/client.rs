@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, Error, ErrorKind, Write};
+use std::io::{self, Error, ErrorKind, Read, Write};
 use std::net::{SocketAddr, TcpStream};
 
 use crate::communication;
@@ -54,7 +54,16 @@ impl Oxyclient {
         }
     }
 
-    pub fn send_file(&self, file: File) {
-        todo!()
+    pub fn send_file(&self, mut file: File) -> io::Result<()> {
+        match self.active_address {
+            Some(address) => {
+                let mut stream = TcpStream::connect(address)?;
+                let mut buf = Vec::new();
+                file.read_to_end(&mut buf)?; // TODO: this is inefficient
+                stream.write_all(&buf)?;
+                Ok(())
+            }
+            None => Err(Error::new(ErrorKind::NotConnected, "no active connection")),
+        }
     }
 }

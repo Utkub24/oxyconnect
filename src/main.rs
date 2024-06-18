@@ -3,14 +3,14 @@ mod client;
 mod communication;
 mod server;
 
-use std::{fs::File, io};
+use std::{fs::{File, OpenOptions}, io};
 
 use clap::Parser;
 use client::Oxyclient;
 use server::Oxyserver;
 
-fn fetch_file(path: &std::path::PathBuf) -> File {
-    todo!()
+fn fetch_file(path: &std::path::PathBuf) -> io::Result<File> {
+    OpenOptions::new().read(true).open(path)
 }
 
 fn main() -> io::Result<()> {
@@ -37,10 +37,13 @@ fn main() -> io::Result<()> {
 
         cliargs::Command::SendFile(send_file_args) => {
             let client = Oxyclient::new(Some(send_file_args.address));
-            let path = send_file_args.file_path;
-            let file = fetch_file(&path);
+            let path = &send_file_args.file_path;
+            let file = fetch_file(path)?;
             println!("sending over file {}", path.display());
-            client.send_file(file);
+            match client.send_file(file) {
+                Ok(_) => println!("sent!"),
+                Err(e) => eprintln!("failed to send file:\n{}", e),
+            }
             // TODO: some sort of generalized 'client::issue_command()' ?
         }
     }
