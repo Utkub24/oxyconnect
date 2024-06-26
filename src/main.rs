@@ -2,11 +2,13 @@ mod cliargs;
 mod client;
 mod communication;
 mod server;
+mod repl;
 
 use std::{fs::{File, OpenOptions}, io};
 
 use clap::Parser;
 use client::Oxyclient;
+use repl::Repl;
 use server::Oxyserver;
 
 fn fetch_file(path: &std::path::PathBuf) -> io::Result<File> {
@@ -24,7 +26,8 @@ fn main() -> io::Result<()> {
             let mut client = Oxyclient::default();
             let _ = client.connect_to(connect_args.address); // TODO: error handling
 
-            // TODO: open interactive interface
+            let mut repl = Repl::new(&mut client);
+            repl.start();
         }
 
         cliargs::Command::Ping(ping_args) => {

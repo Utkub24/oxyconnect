@@ -2,8 +2,6 @@ use std::fs::File;
 use std::io::{self, Error, ErrorKind, Read, Write};
 use std::net::{SocketAddr, TcpStream};
 
-use crate::communication;
-
 #[derive(Default)]
 pub struct Oxyclient {
     active_address: Option<SocketAddr>,
@@ -14,6 +12,10 @@ impl Oxyclient {
         Self {
             active_address: address,
         }
+    }
+
+    pub fn active_address(&self) -> Option<&SocketAddr> {
+        self.active_address.as_ref()
     }
 
     pub fn is_connected(&self) -> bool {
