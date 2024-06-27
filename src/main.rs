@@ -24,22 +24,22 @@ fn main() -> io::Result<()> {
 
         cliargs::Command::Connect(connect_args) => {
             let mut client = Oxyclient::default();
-            let _ = client.connect_to(connect_args.address); // TODO: error handling
+            let _ = client.bind(connect_args.address); // TODO: error handling
 
             let mut repl = Repl::new(&mut client);
             repl.start();
         }
 
         cliargs::Command::Ping(ping_args) => {
-            let client = Oxyclient::new(Some(ping_args.address));
-            match client.ping_active_connection() {
+            let client = Oxyclient::new(ping_args.address);
+            match client.ping() {
                 Ok(_) => println!("ping succeeded"),
                 Err(e) => eprintln!("ping failed\n{}", e),
             }
         }
 
         cliargs::Command::SendFile(send_file_args) => {
-            let client = Oxyclient::new(Some(send_file_args.address));
+            let client = Oxyclient::new(send_file_args.address);
             let path = &send_file_args.file_path;
             let file = fetch_file(path)?;
             println!("sending over file {}", path.display());

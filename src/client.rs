@@ -8,9 +8,9 @@ pub struct Oxyclient {
 }
 
 impl Oxyclient {
-    pub fn new(address: Option<SocketAddr>) -> Self {
+    pub fn new(address: SocketAddr) -> Self {
         Self {
-            active_address: address,
+            active_address: Some(address),
         }
     }
 
@@ -18,32 +18,28 @@ impl Oxyclient {
         self.active_address.as_ref()
     }
 
-    pub fn is_connected(&self) -> bool {
+    pub fn is_bound(&self) -> bool {
         self.active_address.is_some()
     }
 
-    pub fn connect_to(&mut self, address: SocketAddr) -> io::Result<()> {
-        if self.is_connected() {
-            // redundant check?
-            let _ = self.disconnect();
-        }
+    pub fn bind(&mut self, address: SocketAddr) -> io::Result<()> {
         self.active_address = Some(address);
-        let stream = TcpStream::connect(address)?;
+        //let stream = TcpStream::connect(address)?;
         Ok(())
     }
 
-    pub fn disconnect(&mut self) -> io::Result<()> {
+    pub fn unbind(&mut self) -> io::Result<()> {
         match self.active_address {
             Some(_) => {
                 // TODO: close active streams if any
                 self.active_address = None;
                 Ok(())
             }
-            None => Err(Error::new(ErrorKind::NotConnected, "no active connection")),
+            None => Err(Error::new(ErrorKind::NotConnected, "No active connection")),
         }
     }
 
-    pub fn ping_active_connection(&self) -> io::Result<()> {
+    pub fn ping(&self) -> io::Result<()> {
         match self.active_address {
             Some(address) => {
                 let mut stream = TcpStream::connect(address)?;
@@ -52,7 +48,7 @@ impl Oxyclient {
                 stream.write(message.as_bytes())?;
                 Ok(())
             }
-            None => Err(Error::new(ErrorKind::NotConnected, "no active connection")),
+            None => Err(Error::new(ErrorKind::NotConnected, "No active connection")),
         }
     }
 
@@ -65,7 +61,7 @@ impl Oxyclient {
                 stream.write_all(&buf)?;
                 Ok(())
             }
-            None => Err(Error::new(ErrorKind::NotConnected, "no active connection")),
+            None => Err(Error::new(ErrorKind::NotConnected, "No active connection")),
         }
     }
 }

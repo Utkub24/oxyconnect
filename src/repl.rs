@@ -66,15 +66,32 @@ impl<'a> Repl<'a> {
         // meaning: wait for response from server
         match command {
             replargs::Command::Status => {
-                if self.client.is_connected() {
-                    println!("Connected to: {}", self.client.active_address().unwrap())
+                if self.client.is_bound() {
+                    println!("Connected to: {}", self.client.active_address().unwrap());
                 } else {
                     println!("No active connection");
                 }
             }
-            replargs::Command::Connect(args) => self.client.connect_to(args.address).unwrap(),
-            replargs::Command::Disconnect => self.client.disconnect().unwrap(),
-            replargs::Command::Ping => self.client.ping_active_connection().unwrap(),
+            replargs::Command::Connect(args) => {
+                if self.client.is_bound() {
+                    println!("Already connected to: {}", self.client.active_address().unwrap());
+                } else {
+                    let _ = self.client.bind(args.address);
+                    println!("Connected");
+                }
+            }
+            replargs::Command::Disconnect => {
+                match self.client.unbind() {
+                    Ok(_) => println!("Disconnected"),
+                    Err(e) => println!("{}", e),
+                }
+            }
+            replargs::Command::Ping => {
+                match self.client.ping() {
+                    Ok(_) => println!("Ping successful"),
+                    Err(e) => eprintln!("{}", e),
+                }
+            }
             replargs::Command::SendFile(args) => {
                 match OpenOptions::new().read(true).open(args.file_path) {
                     Ok(file) => {
