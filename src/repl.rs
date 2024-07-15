@@ -16,6 +16,7 @@ enum ParsedLine {
     Command(replargs::Command),
     ClapError(clap::error::Error),
     ReadLineError(io::Error),
+    EmptyLine,
     Abort,
 }
 
@@ -38,6 +39,7 @@ impl<'a> Repl<'a> {
                 ParsedLine::Command(c) => self.eval(c),
                 ParsedLine::ClapError(e) => e.print().unwrap(),
                 ParsedLine::ReadLineError(e) => eprintln!("{}", e),
+                ParsedLine::EmptyLine => continue,
                 ParsedLine::Abort => break,
             }
         }
@@ -46,7 +48,13 @@ impl<'a> Repl<'a> {
     fn read(&mut self) -> ParsedLine {
         match self.rl.read_line(&*self.prompt) {
             Ok(s) => match s {
-                reedline::Signal::Success(buf) => Repl::parse_line(&buf),
+                reedline::Signal::Success(buf) => {
+                    if buf.is_empty() {
+                        ParsedLine::EmptyLine
+                    } else {
+                         Repl::parse_line(&buf)
+                    }
+                }
                 reedline::Signal::CtrlC | reedline::Signal::CtrlD => ParsedLine::Abort,
             },
             Err(e) => ParsedLine::ReadLineError(e),
